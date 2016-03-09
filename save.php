@@ -12,6 +12,7 @@
     $object->ingredients = $_GET["ingredients"];
     $object->timeAdded = $_GET["timeAdded"];
 
+
     //lisan massiivi
     array_push($entries, $object);
 
@@ -21,7 +22,18 @@
     file_put_contents($file_name, $json);
   }
 
-  //var_dump($entries);
+  if(isset($_GET["delete"]) && !empty($_GET["delete"])){
+
+
+    for($i=0; $i<sizeof($entries); $i++){
+      if($_GET["delete"] == $entries[$i]->id){
+        unset($entries[$i]);
+
+      }
+    }
+    file_put_contents($file_name, json_encode($entries));
+  }
+
   echo(json_encode($entries));
 
 ?>

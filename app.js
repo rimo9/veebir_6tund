@@ -66,12 +66,40 @@
       if(localStorage.jars){
         //string tagasi objektiks
         this.jars = JSON.parse(localStorage.jars);
+
         //tekitan loendi htmli
-        this.jars.forEach(function(jar){
+        for(var i = 0; i < Moosipurk.instance.jars.length; i++){
+            var jar =  Moosipurk.instance.jars[i];
             var new_jar = new Jar(jar.id, jar.title, jar.ingredients, jar.timeAdded);
             var li = new_jar.createHtmlElement();
             document.querySelector('.list-of-jars').appendChild(li);
-        });
+        }
+      }else{
+        //küsin AJAXIGA
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+
+					console.log(xhttp.responseText);
+					//tekst -> objekktideks
+					Moosipurk.instance.jars = JSON.parse(xhttp.responseText);
+					console.log(Moosipurk.instance.jars);
+
+					//teen purgid htmli
+					for(var i = 0; i < Moosipurk.instance.jars.length; i++){
+              var jar =  Moosipurk.instance.jars[i];
+					   var new_jar = new Jar(jar.id, jar.title, jar.ingredients, jar.timeAdded);
+					   var li = new_jar.createHtmlElement();
+					   document.querySelector('.list-of-jars').appendChild(li);
+				   }
+
+				   //salvestan localStoragisse
+				   localStorage.setItem('jars', JSON.stringify(Moosipurk.instance.jars));
+
+				  }
+  			};
+  			xhttp.open("GET", "save.php", true);
+  			xhttp.send();
       }
 
       //hakka kuulama hiireklõpse
@@ -110,6 +138,20 @@
           break;
         }
       }
+
+      //AJAX
+      var xhttp = new XMLHttpRequest();
+      //mis juhtub kui päring lõppeb
+      xhttp.onreadystatechange = function() {
+        console.log(xhttp.readyState);
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+         console.log(xhttp.responseText);
+        }
+      };
+      //teeb päringu
+      xhttp.open("GET", "save.php?delete="+event.target.dataset.id, true);
+      xhttp.send();
+
       localStorage.setItem('jars', JSON.stringify(this.jars));
     },
     search: function(event){
