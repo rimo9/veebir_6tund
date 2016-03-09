@@ -153,12 +153,28 @@
           document.querySelector('.feedback-error').className=document.querySelector('.feedback-error').className.replace('feedback-error','feedback-success');
         }
         document.querySelector('#show-feedback').innerHTML='Salvestamine õnnestus';
-  		  var new_jar = new Jar(guid(),title, ingredients, timeAdded);
+        var id = guid();
+  		  var new_jar = new Jar(id,title, ingredients, timeAdded);
         //lisan massiivi moosipurgi
         this.jars.push(new_jar);
         //console.log(JSON.stringify(this.jars));
+
         //JSON'i stringina salvestan local storagisse
         localStorage.setItem('jars', JSON.stringify(this.jars));
+
+        //AJAX
+        var xhttp = new XMLHttpRequest();
+        //mis juhtub kui päring lõppeb
+        xhttp.onreadystatechange = function() {
+          console.log(xhttp.readyState);
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+           console.log(xhttp.responseText);
+          }
+        };
+        //teeb päringu
+        xhttp.open("GET", "save.php?id="+id+"&title="+title+"&ingredients="+ingredients+"&timeAdded="+timeAdded, true);
+        xhttp.send();
+
         document.querySelector('.list-of-jars').appendChild(new_jar.createHtmlElement());
       }
     },
