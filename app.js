@@ -62,13 +62,13 @@
         //hash oli olemas
         this.routeChange();
       }
-      //saan kätte purgid localStorage kui on
+      //saan kätte purgid localStoragest, kui on
       if(localStorage.jars){
         //string tagasi objektiks
         this.jars = JSON.parse(localStorage.jars);
         //tekitan loendi htmli
         this.jars.forEach(function(jar){
-            var new_jar = new Jar(jar.title, jar.ingredients, jar.timeAdded);
+            var new_jar = new Jar(jar.id, jar.title, jar.ingredients, jar.timeAdded);
             var li = new_jar.createHtmlElement();
             document.querySelector('.list-of-jars').appendChild(li);
         });
@@ -82,13 +82,43 @@
       //kuulan trükkimist otsi kastist
       document.querySelector('#search').addEventListener('keyup', this.search.bind(this));
     },
+    deleteJar: function(event){
+      //millele vajutasin
+      console.log(event.target);
+      //tema parentNode(mille sees ta on)
+      console.log(event.target.parentNode);
+      //mille sees see on
+      console.log(event.target.parentNode.parentNode);
+      //id
+      console.log(event.target.dataset.id);
+
+      var c = confirm("kindel?");
+      //vajutas no või pani kinni
+      if(!c){return;}
+
+      //kustutan
+      console.log('kustutan');
+      var ul = event.target.parentNode.parentNode;
+      var li = event.target.parentNode;
+      ul.removeChild(li);
+
+      for(var i=0; i<this.jars.length; i++){
+        if(this.jars[i].id == event.target.dataset.id){
+          //kustuta kohal i objekt ära
+          this.jars.splice(i, 1);
+          //ei lähe edasi
+          break;
+        }
+      }
+      localStorage.setItem('jars', JSON.stringify(this.jars));
+    },
     search: function(event){
       //otsikasti väärtus
       var needle = document.querySelector('#search').value.toLowerCase();
       //console.log(needle);
 
       var list = document.querySelectorAll('ul.list-of-jars li');
-      console.log(list);
+      //console.log(list);
       for(var i=0; i<list.length; i++){
         var li = list[i];
           //ühe list itemi sisu
@@ -123,10 +153,10 @@
           document.querySelector('.feedback-error').className=document.querySelector('.feedback-error').className.replace('feedback-error','feedback-success');
         }
         document.querySelector('#show-feedback').innerHTML='Salvestamine õnnestus';
-  		  var new_jar = new Jar(title, ingredients, timeAdded);
+  		  var new_jar = new Jar(guid(),title, ingredients, timeAdded);
         //lisan massiivi moosipurgi
         this.jars.push(new_jar);
-        console.log(JSON.stringify(this.jars));
+        //console.log(JSON.stringify(this.jars));
         //JSON'i stringina salvestan local storagisse
         localStorage.setItem('jars', JSON.stringify(this.jars));
         document.querySelector('.list-of-jars').appendChild(new_jar.createHtmlElement());
@@ -143,7 +173,7 @@
         this.routes[this.currentRoute].render();
       }else{
         //404? ei ole
-        console.log('404');
+        //console.log('404');
         window.location.hash = 'home-view';
       }
     },
@@ -180,10 +210,11 @@
 }
   };
 
-  var Jar = function(title, new_ingredients, timeAdded){
+  var Jar = function(new_id, title, new_ingredients, timeAdded){
+    this.id = new_id;
     this.title = title;
     this.ingredients = new_ingredients;
-	this.timeAdded = timeAdded;
+	  this.timeAdded = timeAdded;
   };
   Jar.prototype = {
     createHtmlElement: function(){
@@ -202,10 +233,33 @@
       content_span.appendChild(content);
       li.appendChild(content_span);
 
+      var span_delete = document.createElement('span');
+      span_delete.style.color = "red";
+      span_delete.style.cursor = "pointer";
+      span_delete.setAttribute("data-id", this.id);
+      span_delete.innerHTML = " Delete";
+      li.appendChild(span_delete);
+
+      //keegi vajutas
+      span_delete.addEventListener("click", Moosipurk.instance.deleteJar.bind(Moosipurk.instance));
+
       //console.log(li);
       return li;
     }
   };
+  //helper
+  function guid(){
+    var d = new Date().getTime();
+    if(window.performance && typeof window.performance.now === "function"){
+        d += performance.now(); //use high-precision timer if available
+    }
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+  }
 
   window.onload = function(){
     var app = new Moosipurk();
